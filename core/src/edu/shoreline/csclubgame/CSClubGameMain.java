@@ -21,7 +21,10 @@ public class CSClubGameMain extends Game {
 	@Override
 	public void dispose () {
 		super.dispose();
+	}
 
+	public void exit() {
+		Gdx.app.exit();
 	}
 
 	public void displayMainMenu() {
