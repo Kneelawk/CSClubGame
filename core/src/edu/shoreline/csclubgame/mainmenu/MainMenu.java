@@ -2,7 +2,6 @@ package edu.shoreline.csclubgame.mainmenu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -24,15 +23,9 @@ public class MainMenu extends ScreenGame {
 
     @Override
     public void init() {
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
         stage = new Stage(new FitViewport(1280, 720));
 
-        TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("skins/neon/neon-ui.atlas"));
-
-        Skin skin = new Skin();
-        skin.addRegions(atlas);
-        skin.load(Gdx.files.internal("skins/neon/neon-ui.json"));
+        Skin skin = main.getUiSkin();
 
         Table table = new Table(skin);
         table.setFillParent(true);
@@ -44,7 +37,7 @@ public class MainMenu extends ScreenGame {
         start.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                // TODO start game
+                main.displayGameScreen();
             }
         });
 
@@ -63,6 +56,7 @@ public class MainMenu extends ScreenGame {
     @Override
     public void showGame() {
         Gdx.input.setInputProcessor(stage);
+        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     }
 
     @Override
@@ -73,7 +67,6 @@ public class MainMenu extends ScreenGame {
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
-
     }
 
     @Override
