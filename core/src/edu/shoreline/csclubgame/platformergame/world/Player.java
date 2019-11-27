@@ -44,7 +44,7 @@ public class Player {
 
         fixture = body.createFixture(fixtureDef);
 
-        shape.setAsBox(1, 0.2f, new Vector2(0, -1), 0);
+        shape.setAsBox(1, 0.4f, new Vector2(0, -1), 0);
 
         FixtureDef footFixtureDef = new FixtureDef();
         footFixtureDef.shape = shape;
@@ -77,6 +77,10 @@ public class Player {
         body.applyForceToCenter(direction, true);
     }
 
+    public void slowMovement(float factor) {
+        body.applyForceToCenter(body.getLinearVelocity().scl(Vector2.X).scl(factor * body.getMass() * -1), true);
+    }
+
     public void update() {
         controller.update();
     }
@@ -107,11 +111,14 @@ public class Player {
         }
 
         private void update() {
-            if (pressedKeys.contains(Input.Keys.A)) {
-                move(new Vector2(-100, 0));
-            }
-            if (pressedKeys.contains(Input.Keys.D)) {
-                move(new Vector2(100, 0));
+            if (pressedKeys.contains(Input.Keys.A) && pressedKeys.contains(Input.Keys.D)) {
+                slowMovement(2f);
+            } else if (pressedKeys.contains(Input.Keys.A)) {
+                move(new Vector2(-40, 0));
+            } else if (pressedKeys.contains(Input.Keys.D)) {
+                move(new Vector2(40, 0));
+            } else {
+                slowMovement(2f);
             }
             if (pressedKeys.contains(Input.Keys.W) && jumpTime > 0) {
                 move(new Vector2(0, 200));

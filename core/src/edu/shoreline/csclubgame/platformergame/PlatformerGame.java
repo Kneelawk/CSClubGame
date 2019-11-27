@@ -30,7 +30,7 @@ public class PlatformerGame extends ScreenGame {
     private static final int INITIAL_VIEWPORT_HEIGHT = 720;
     private static final float INITIAL_VIEWPORT_ASPECT_RATIO =
             ((float) INITIAL_VIEWPORT_HEIGHT) / ((float) INITIAL_VIEWPORT_WIDTH);
-    private static final float INITIAL_GAME_VIEW_WIDTH = 20;
+    private static final float INITIAL_GAME_VIEW_WIDTH = 40;
     private static final float INITIAL_GAME_VIEW_HEIGHT = INITIAL_GAME_VIEW_WIDTH * INITIAL_VIEWPORT_ASPECT_RATIO;
 
     private static final float PHYSICS_SIMULATION_STEP = 1f / 60f;
@@ -89,7 +89,11 @@ public class PlatformerGame extends ScreenGame {
             @Override
             public boolean keyDown(int keycode) {
                 if (keycode == Input.Keys.ESCAPE) {
-                    changeState(PlatformerGameState.ESCAPE_MENU);
+                    if (gameRunning) {
+                        changeState(PlatformerGameState.ESCAPE_MENU);
+                    } else {
+                        changeState(PlatformerGameState.PLAYING);
+                    }
                     return true;
                 }
                 return false;
