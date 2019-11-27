@@ -6,6 +6,10 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -16,6 +20,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import edu.shoreline.csclubgame.CSClubGameMain;
+import edu.shoreline.csclubgame.platformergame.world.Platform;
+import edu.shoreline.csclubgame.platformergame.world.Player;
+import edu.shoreline.csclubgame.platformergame.world.WorldContactManager;
 import edu.shoreline.csclubgame.util.ScreenGame;
 
 public class PlatformerGame extends ScreenGame {
@@ -26,13 +33,21 @@ public class PlatformerGame extends ScreenGame {
     private static final float INITIAL_GAME_VIEW_WIDTH = 20;
     private static final float INITIAL_GAME_VIEW_HEIGHT = INITIAL_GAME_VIEW_WIDTH * INITIAL_VIEWPORT_ASPECT_RATIO;
 
+    private static final float PHYSICS_SIMULATION_STEP = 1f / 60f;
+
     private final CSClubGameMain main;
 
     private InputMultiplexer input;
 
+    private boolean gameRunning;
     private OrthographicCamera camera;
     private Stage gameStage;
-    private InputAdapter gameInput;
+    private World gameWorld;
+    private float physicsAccumulator;
+    private edu.shoreline.csclubgame.platformergame.world.Player player;
+    private Box2DDebugRenderer debugRenderer;
+
+    private InputAdapter auxInput;
 
     private Stage uiStage;
     private WidgetGroup uiGroup;
@@ -46,16 +61,31 @@ public class PlatformerGame extends ScreenGame {
     public void init() {
         setupGame();
         setupUI();
+        setupInput();
 
-        input = new InputMultiplexer(gameStage, uiStage, gameInput);
+        input = new InputMultiplexer(gameStage, uiStage, auxInput, player.getController());
+
+        changeState(PlatformerGameState.PLAYING);
     }
 
     private void setupGame() {
         camera = new OrthographicCamera(INITIAL_GAME_VIEW_WIDTH, INITIAL_GAME_VIEW_HEIGHT);
         gameStage = new Stage(new ExtendViewport(INITIAL_GAME_VIEW_WIDTH, INITIAL_GAME_VIEW_HEIGHT, camera));
 
-        // detect escape press
-        gameInput = new InputAdapter() {
+        gameWorld = new World(new Vector2(0, -9.8f), true);
+
+        edu.shoreline.csclubgame.platformergame.world.WorldContactManager contactManager = new WorldContactManager();
+        gameWorld.setContactListener(contactManager);
+
+        player = new Player(gameWorld, contactManager, new Vector2(5, 5));
+
+        new Platform(gameWorld, new Vector2(0, 0), new Vector2(20, 2));
+
+        debugRenderer = new Box2DDebugRenderer();
+    }
+
+    private void setupInput() {
+        auxInput = new InputAdapter() {
             @Override
             public boolean keyDown(int keycode) {
                 if (keycode == Input.Keys.ESCAPE) {
@@ -127,23 +157,43 @@ public class PlatformerGame extends ScreenGame {
 
     @Override
     public void render(float delta) {
+        if (gameRunning) {
+            stepPhysics(delta);
+            moveCamera(delta);
+        }
+
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         gameStage.getViewport().apply();
-        gameStage.act(delta);
+        if (gameRunning) {
+            gameStage.act(delta);
+        }
         gameStage.draw();
+
+        debugRenderer.render(gameWorld, camera.combined);
 
         uiStage.getViewport().apply();
         uiStage.act(delta);
         uiStage.draw();
     }
 
-    public void changeState(PlatformerGameState state) {
-        if (state == PlatformerGameState.ESCAPE_MENU) {
-            uiGroup.addActor(escapeMenuGroup);
-        } else {
-            uiGroup.removeActor(escapeMenuGroup);
+    private void stepPhysics(float delta) {
+        float maxDelta = Math.min(delta, 0.25f);
+        physicsAccumulator += maxDelta;
+
+        while (physicsAccumulator >= PHYSICS_SIMULATION_STEP) {
+            updatePlayer();
+            gameWorld.step(PHYSICS_SIMULATION_STEP, 6, 2);
+            physicsAccumulator -= PHYSICS_SIMULATION_STEP;
         }
+    }
+
+    private void updatePlayer() {
+        player.update();
+    }
+
+    private void moveCamera(float delta) {
+        camera.position.add(new Vector3(player.getBody().getPosition(), 0f).sub(camera.position).scl(delta * 10));
     }
 
     @Override
@@ -156,6 +206,15 @@ public class PlatformerGame extends ScreenGame {
         // I think this is mainly just something that happens on mobile when the user switches to another app and then
         // switches back.
         changeState(PlatformerGameState.ESCAPE_MENU);
+    }
+
+    public void changeState(PlatformerGameState state) {
+        if (state == PlatformerGameState.ESCAPE_MENU) {
+            uiGroup.addActor(escapeMenuGroup);
+        } else {
+            uiGroup.removeActor(escapeMenuGroup);
+        }
+        gameRunning = state == PlatformerGameState.PLAYING;
     }
 
     @Override

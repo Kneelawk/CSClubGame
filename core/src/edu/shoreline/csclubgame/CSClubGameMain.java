@@ -3,6 +3,7 @@ package edu.shoreline.csclubgame;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.physics.box2d.Box2D;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import edu.shoreline.csclubgame.mainmenu.MainMenu;
 import edu.shoreline.csclubgame.platformergame.PlatformerGame;
@@ -16,6 +17,8 @@ public class CSClubGameMain extends Game {
 
     @Override
     public void create() {
+        Box2D.init();
+
         uiAtlas = new TextureAtlas(Gdx.files.internal("skins/neon/neon-ui.atlas"));
         uiSkin = new Skin();
         uiSkin.addRegions(uiAtlas);
