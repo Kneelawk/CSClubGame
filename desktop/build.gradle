@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 apply plugin: "java"
 
 sourceCompatibility = 1.8
@@ -14,7 +16,9 @@ task run(dependsOn: classes, type: JavaExec) {
     workingDir = project.assetsDir
     ignoreExitValue = true
     // patch for GLFW on macos
-    jvmArgs '-XstartOnFirstThread'
+    if (Os.isFamily(Os.FAMILY_MAC)) {
+        jvmArgs '-XstartOnFirstThread'
+    }
 }
 
 task debug(dependsOn: classes, type: JavaExec) {
@@ -25,7 +29,9 @@ task debug(dependsOn: classes, type: JavaExec) {
     ignoreExitValue = true
     debug = true
     // patch for GLFW on macos
-    jvmArgs '-XstartOnFirstThread'
+    if (Os.isFamily(Os.FAMILY_MAC)) {
+        jvmArgs '-XstartOnFirstThread'
+    }
 }
 
 task dist(type: Jar) {
