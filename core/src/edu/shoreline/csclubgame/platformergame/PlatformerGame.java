@@ -30,7 +30,7 @@ public class PlatformerGame extends ScreenGame {
     private static final int INITIAL_VIEWPORT_HEIGHT = 720;
     private static final float INITIAL_VIEWPORT_ASPECT_RATIO =
             ((float) INITIAL_VIEWPORT_HEIGHT) / ((float) INITIAL_VIEWPORT_WIDTH);
-    private static final float INITIAL_GAME_VIEW_WIDTH = 40;
+    private static final float INITIAL_GAME_VIEW_WIDTH = 60;
     private static final float INITIAL_GAME_VIEW_HEIGHT = INITIAL_GAME_VIEW_WIDTH * INITIAL_VIEWPORT_ASPECT_RATIO;
 
     private static final float PHYSICS_SIMULATION_STEP = 1f / 60f;

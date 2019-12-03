@@ -33,18 +33,19 @@ public class Player {
 
         body = world.createBody(bodyDef);
 
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(1, 1);
+        CircleShape shape = new CircleShape();
+        shape.setPosition(new Vector2(0f, 0f));
+        shape.setRadius(1f);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 0.5f;
         fixtureDef.friction = 0.4f;
-        fixtureDef.restitution = 0.6f;
+        fixtureDef.restitution = 0.2f;
 
         fixture = body.createFixture(fixtureDef);
 
-        shape.setAsBox(1, 0.4f, new Vector2(0, -1), 0);
+        shape.setRadius(1.3f);
 
         FixtureDef footFixtureDef = new FixtureDef();
         footFixtureDef.shape = shape;
@@ -93,7 +94,7 @@ public class Player {
         public boolean keyDown(int keycode) {
             if (KEYS.contains(keycode)) {
                 if (keycode == Input.Keys.W && footContactManager.isOnGround()) {
-                    jumpTime = 4;
+                    jumpTime = 5;
                 }
                 pressedKeys.add(keycode);
                 return true;
