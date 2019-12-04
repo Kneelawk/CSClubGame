@@ -3,12 +3,18 @@ package edu.shoreline.csclubgame.platformergame.world;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
-public class Player {
+public class Player extends Actor {
     private static final HashSet<Integer> KEYS = new HashSet<>();
 
     static {
@@ -22,6 +28,8 @@ public class Player {
     private Fixture fixture;
     private Fixture foot;
     private FootContactManager footContactManager;
+    private FrictionManager frictionManager;
+    private NormalManager normalManager;
 
     public Player(World world, WorldContactManager contactManager, Vector2 initialPosition) {
         controller = new PlayerController();
@@ -39,15 +47,23 @@ public class Player {
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
-        fixtureDef.density = 0.5f;
-        fixtureDef.friction = 0.4f;
+        fixtureDef.density = 0.25f;
+        fixtureDef.friction = 0.6f;
         fixtureDef.restitution = 0.2f;
 
         fixture = body.createFixture(fixtureDef);
 
+        frictionManager = new FrictionManager();
+        contactManager.addListener(fixture, frictionManager);
+        normalManager = new NormalManager();
+        contactManager.addListener(fixture, normalManager);
+
         shape.setRadius(1.3f);
 
         FixtureDef footFixtureDef = new FixtureDef();
+        footFixtureDef.friction = 0f;
+        footFixtureDef.density = 0f;
+        footFixtureDef.restitution = 0f;
         footFixtureDef.shape = shape;
         footFixtureDef.isSensor = true;
         foot = body.createFixture(footFixtureDef);
@@ -56,6 +72,20 @@ public class Player {
         contactManager.addListener(foot, footContactManager);
 
         shape.dispose();
+    }
+
+    @Override
+    public void draw(Batch batch, float parentAlpha) {
+        batch.end();
+        ShapeRenderer renderer = new ShapeRenderer();
+        renderer.setTransformMatrix(batch.getTransformMatrix());
+        renderer.setProjectionMatrix(batch.getProjectionMatrix());
+        renderer.begin(ShapeRenderer.ShapeType.Filled);
+        renderer.setColor(Color.WHITE);
+        renderer.rectLine(body.getPosition(), body.getPosition().cpy().add(normalManager.getNormal().cpy().scl(2)),
+                0.4f);
+        renderer.end();
+        batch.begin();
     }
 
     public InputProcessor getController() {
@@ -80,6 +110,11 @@ public class Player {
 
     public void slowMovement(float factor) {
         body.applyForceToCenter(body.getLinearVelocity().scl(Vector2.X).scl(factor * body.getMass() * -1), true);
+    }
+
+    public void setFriction(float friction) {
+        fixture.setFriction(friction);
+        frictionManager.setFriction(friction);
     }
 
     public void update() {
@@ -114,15 +149,19 @@ public class Player {
         private void update() {
             if (pressedKeys.contains(Input.Keys.A) && pressedKeys.contains(Input.Keys.D)) {
                 slowMovement(2f);
+                setFriction(0.6f);
             } else if (pressedKeys.contains(Input.Keys.A)) {
-                move(new Vector2(-40, 0));
+                move(normalManager.getNormal().cpy().rotate90(1).scl(40));
+                setFriction(0.0f);
             } else if (pressedKeys.contains(Input.Keys.D)) {
-                move(new Vector2(40, 0));
+                move(normalManager.getNormal().cpy().rotate90(-1).scl(40));
+                setFriction(0.0f);
             } else {
                 slowMovement(2f);
+                setFriction(0.6f);
             }
             if (pressedKeys.contains(Input.Keys.W) && jumpTime > 0) {
-                move(new Vector2(0, 200));
+                move(normalManager.getNormal().cpy().scl(200));
                 jumpTime--;
             }
         }
@@ -132,17 +171,92 @@ public class Player {
         private int numContacts = 0;
 
         @Override
-        public void beginContact(Contact contact) {
+        public void beginContact(Contact contact, Fixture you, Fixture other) {
             numContacts++;
         }
 
         @Override
-        public void endContact(Contact contact) {
+        public void endContact(Contact contact, Fixture you, Fixture other) {
             numContacts--;
+        }
+
+        @Override
+        public void preSolve(Contact contact, Manifold oldManifold, Fixture you, Fixture other) {
+        }
+
+        @Override
+        public void postSolve(Contact contact, ContactImpulse impulse, Fixture you, Fixture other) {
         }
 
         private boolean isOnGround() {
             return numContacts > 0;
+        }
+    }
+
+    private class FrictionManager implements FixtureContactListener {
+        private HashSet<Contact> contacts = new HashSet<>();
+
+        @Override
+        public void beginContact(Contact contact, Fixture you, Fixture other) {
+            contacts.add(contact);
+        }
+
+        @Override
+        public void endContact(Contact contact, Fixture you, Fixture other) {
+            contacts.remove(contact);
+        }
+
+        @Override
+        public void preSolve(Contact contact, Manifold oldManifold, Fixture you, Fixture other) {
+        }
+
+        @Override
+        public void postSolve(Contact contact, ContactImpulse impulse, Fixture you, Fixture other) {
+        }
+
+        private void setFriction(float friction) {
+            for (Contact contact : contacts) {
+                contact.setFriction(friction);
+            }
+        }
+    }
+
+    private class NormalManager implements FixtureContactListener {
+        private HashMap<ContactKey, Vector2> contactNormals = new HashMap<>();
+        private Vector2 normal = new Vector2(0, 1);
+
+        @Override
+        public void beginContact(Contact contact, Fixture you, Fixture other) {
+            contactNormals.put(new ContactKey(you, other), contact.getWorldManifold().getNormal().cpy().nor());
+            Vector2 accumulator = new Vector2(0, 0);
+            for (Vector2 normal : contactNormals.values()) {
+                accumulator.add(normal);
+            }
+            normal = accumulator.scl(1f / contactNormals.size());
+        }
+
+        @Override
+        public void endContact(Contact contact, Fixture you, Fixture other) {
+            contactNormals.remove(new ContactKey(you, other));
+            if (contactNormals.size() > 0) {
+                Vector2 accumulator = new Vector2(0, 0);
+                for (Vector2 normal : contactNormals.values()) {
+                    accumulator.add(normal);
+                }
+                normal = accumulator.scl(1f / contactNormals.size());
+            }
+        }
+
+        @Override
+        public void preSolve(Contact contact, Manifold oldManifold, Fixture you, Fixture other) {
+        }
+
+        @Override
+        public void postSolve(Contact contact, ContactImpulse impulse, Fixture you, Fixture other) {
+        }
+
+        public Vector2 getNormal() {
+            return normal;
         }
     }
 }

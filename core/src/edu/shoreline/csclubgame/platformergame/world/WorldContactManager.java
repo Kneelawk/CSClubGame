@@ -33,13 +33,13 @@ public class WorldContactManager implements ContactListener {
     public void beginContact(Contact contact) {
         if (listeners.containsKey(contact.getFixtureA())) {
             for (FixtureContactListener listener : listeners.get(contact.getFixtureA())) {
-                listener.beginContact(contact);
+                listener.beginContact(contact, contact.getFixtureA(), contact.getFixtureB());
             }
         }
 
         if (listeners.containsKey(contact.getFixtureB())) {
             for (FixtureContactListener listener : listeners.get(contact.getFixtureB())) {
-                listener.beginContact(contact);
+                listener.beginContact(contact, contact.getFixtureB(), contact.getFixtureA());
             }
         }
     }
@@ -48,22 +48,44 @@ public class WorldContactManager implements ContactListener {
     public void endContact(Contact contact) {
         if (listeners.containsKey(contact.getFixtureA())) {
             for (FixtureContactListener listener : listeners.get(contact.getFixtureA())) {
-                listener.endContact(contact);
+                listener.endContact(contact, contact.getFixtureA(), contact.getFixtureB());
             }
         }
 
         if (listeners.containsKey(contact.getFixtureB())) {
             for (FixtureContactListener listener : listeners.get(contact.getFixtureB())) {
-                listener.endContact(contact);
+                listener.endContact(contact, contact.getFixtureB(), contact.getFixtureA());
             }
         }
     }
 
     @Override
     public void preSolve(Contact contact, Manifold oldManifold) {
+        if (listeners.containsKey(contact.getFixtureA())) {
+            for (FixtureContactListener listener : listeners.get(contact.getFixtureA())) {
+                listener.preSolve(contact, oldManifold, contact.getFixtureA(), contact.getFixtureB());
+            }
+        }
+
+        if (listeners.containsKey(contact.getFixtureB())) {
+            for (FixtureContactListener listener : listeners.get(contact.getFixtureB())) {
+                listener.preSolve(contact, oldManifold, contact.getFixtureB(), contact.getFixtureA());
+            }
+        }
     }
 
     @Override
     public void postSolve(Contact contact, ContactImpulse impulse) {
+        if (listeners.containsKey(contact.getFixtureA())) {
+            for (FixtureContactListener listener : listeners.get(contact.getFixtureA())) {
+                listener.postSolve(contact, impulse, contact.getFixtureA(), contact.getFixtureB());
+            }
+        }
+
+        if (listeners.containsKey(contact.getFixtureB())) {
+            for (FixtureContactListener listener : listeners.get(contact.getFixtureB())) {
+                listener.postSolve(contact, impulse, contact.getFixtureB(), contact.getFixtureA());
+            }
+        }
     }
 }

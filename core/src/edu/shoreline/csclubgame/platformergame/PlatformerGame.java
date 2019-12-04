@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -46,6 +47,7 @@ public class PlatformerGame extends ScreenGame {
     private float physicsAccumulator;
     private edu.shoreline.csclubgame.platformergame.world.Player player;
     private Box2DDebugRenderer debugRenderer;
+    private Group gameGroup;
 
     private InputAdapter auxInput;
 
@@ -71,15 +73,26 @@ public class PlatformerGame extends ScreenGame {
     private void setupGame() {
         camera = new OrthographicCamera(INITIAL_GAME_VIEW_WIDTH, INITIAL_GAME_VIEW_HEIGHT);
         gameStage = new Stage(new ExtendViewport(INITIAL_GAME_VIEW_WIDTH, INITIAL_GAME_VIEW_HEIGHT, camera));
+        gameGroup = new Group();
+        gameStage.addActor(gameGroup);
 
-        gameWorld = new World(new Vector2(0, -9.8f), true);
+        gameWorld = new World(new Vector2(0, -19.6f), true);
 
-        edu.shoreline.csclubgame.platformergame.world.WorldContactManager contactManager = new WorldContactManager();
+        WorldContactManager contactManager = new WorldContactManager();
         gameWorld.setContactListener(contactManager);
 
-        player = new Player(gameWorld, contactManager, new Vector2(5, 5));
+        player = new Player(gameWorld, contactManager, new Vector2(0, 5));
+        gameGroup.addActor(player);
 
-        new Platform(gameWorld, new Vector2(0, 0), new Vector2(20, 2));
+        new Platform(gameWorld, new Vector2(0, 0), new Vector2(20, 2), 0);
+        new Platform(gameWorld, new Vector2(24, 6), new Vector2(4, 1), 0);
+        new Platform(gameWorld, new Vector2(31, 9), new Vector2((float) (3 * Math.sqrt(2)), 1), (float) (Math.PI / 4));
+        new Platform(gameWorld, new Vector2(34, 16), new Vector2(4, 1), (float) (Math.PI / 2));
+        new Platform(gameWorld, new Vector2(31, 23), new Vector2((float) (3 * Math.sqrt(2)), 1),
+                (float) (Math.PI * 3 / 4));
+        new Platform(gameWorld, new Vector2(24, 26), new Vector2(4, 1), 0);
+        new Platform(gameWorld, new Vector2(17, 23), new Vector2((float) (3 * Math.sqrt(2)), 1), (float) (Math.PI * 5 / 4));
+        new Platform(gameWorld, new Vector2(14, 16), new Vector2(4, 1), (float) (Math.PI * 3 / 2));
 
         debugRenderer = new Box2DDebugRenderer();
     }
@@ -168,13 +181,13 @@ public class PlatformerGame extends ScreenGame {
 
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        debugRenderer.render(gameWorld, camera.combined);
+
         gameStage.getViewport().apply();
         if (gameRunning) {
             gameStage.act(delta);
         }
         gameStage.draw();
-
-        debugRenderer.render(gameWorld, camera.combined);
 
         uiStage.getViewport().apply();
         uiStage.act(delta);

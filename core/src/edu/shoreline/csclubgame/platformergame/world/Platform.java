@@ -7,7 +7,7 @@ public class Platform {
     private Body body;
     private Fixture fixture;
 
-    public Platform(World world, Vector2 position, Vector2 dimensions) {
+    public Platform(World world, Vector2 position, Vector2 dimensions, float rotation) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.StaticBody;
         bodyDef.position.set(position);
@@ -15,11 +15,11 @@ public class Platform {
         body = world.createBody(bodyDef);
 
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(dimensions.x, dimensions.y);
+        shape.setAsBox(dimensions.x, dimensions.y, new Vector2(0, 0), rotation);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
-        fixtureDef.friction = 0.4f;
+        fixtureDef.friction = 0.2f;
         fixtureDef.restitution = 0.2f;
 
         fixture = body.createFixture(fixtureDef);
