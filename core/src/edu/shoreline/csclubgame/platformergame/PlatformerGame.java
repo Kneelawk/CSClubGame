@@ -84,15 +84,17 @@ public class PlatformerGame extends ScreenGame {
         player = new Player(gameWorld, contactManager, new Vector2(0, 5));
         gameGroup.addActor(player);
 
-        new Platform(gameWorld, new Vector2(0, 0), new Vector2(20, 2), 0);
-        new Platform(gameWorld, new Vector2(24, 6), new Vector2(4, 1), 0);
-        new Platform(gameWorld, new Vector2(31, 9), new Vector2((float) (3 * Math.sqrt(2)), 1), (float) (Math.PI / 4));
-        new Platform(gameWorld, new Vector2(34, 16), new Vector2(4, 1), (float) (Math.PI / 2));
+        new Platform(gameWorld, new Vector2(0, 0), new Vector2(20, 2), 0, true);
+        new Platform(gameWorld, new Vector2(24, 6), new Vector2(4, 1), 0, true);
+        new Platform(gameWorld, new Vector2(31, 9), new Vector2((float) (3 * Math.sqrt(2)), 1), (float) (Math.PI / 4),
+                true);
+        new Platform(gameWorld, new Vector2(34, 16), new Vector2(4, 1), (float) (Math.PI / 2), true);
         new Platform(gameWorld, new Vector2(31, 23), new Vector2((float) (3 * Math.sqrt(2)), 1),
-                (float) (Math.PI * 3 / 4));
-        new Platform(gameWorld, new Vector2(24, 26), new Vector2(4, 1), 0);
-        new Platform(gameWorld, new Vector2(17, 23), new Vector2((float) (3 * Math.sqrt(2)), 1), (float) (Math.PI * 5 / 4));
-        new Platform(gameWorld, new Vector2(14, 16), new Vector2(4, 1), (float) (Math.PI * 3 / 2));
+                (float) (Math.PI * 3 / 4), true);
+        new Platform(gameWorld, new Vector2(24, 26), new Vector2(4, 1), (float) Math.PI, true);
+        new Platform(gameWorld, new Vector2(17, 23), new Vector2((float) (3 * Math.sqrt(2)), 1),
+                (float) (Math.PI * 5 / 4), true);
+        new Platform(gameWorld, new Vector2(14, 16), new Vector2(4, 1), (float) (Math.PI * 3 / 2), true);
 
         debugRenderer = new Box2DDebugRenderer();
     }

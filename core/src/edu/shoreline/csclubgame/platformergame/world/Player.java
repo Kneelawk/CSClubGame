@@ -9,13 +9,13 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.utils.IntSet;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
 public class Player extends Actor {
-    private static final HashSet<Integer> KEYS = new HashSet<>();
+    private static final IntSet KEYS = new IntSet();
 
     static {
         KEYS.add(Input.Keys.W);
@@ -55,8 +55,6 @@ public class Player extends Actor {
 
         frictionManager = new FrictionManager();
         contactManager.addListener(fixture, frictionManager);
-        normalManager = new NormalManager();
-        contactManager.addListener(fixture, normalManager);
 
         shape.setRadius(1.3f);
 
@@ -70,6 +68,8 @@ public class Player extends Actor {
 
         footContactManager = new FootContactManager();
         contactManager.addListener(foot, footContactManager);
+        normalManager = new NormalManager();
+        contactManager.addListener(foot, normalManager);
 
         shape.dispose();
     }
@@ -122,7 +122,7 @@ public class Player extends Actor {
     }
 
     private class PlayerController extends InputAdapter {
-        private HashSet<Integer> pressedKeys = new HashSet<>();
+        private IntSet pressedKeys = new IntSet();
         private int jumpTime = 0;
 
         @Override
@@ -151,17 +151,17 @@ public class Player extends Actor {
                 slowMovement(2f);
                 setFriction(0.6f);
             } else if (pressedKeys.contains(Input.Keys.A)) {
-                move(normalManager.getNormal().cpy().rotate90(1).scl(40));
+                move(normalManager.getNormal().cpy().rotate90(1).scl(20));
                 setFriction(0.0f);
             } else if (pressedKeys.contains(Input.Keys.D)) {
-                move(normalManager.getNormal().cpy().rotate90(-1).scl(40));
+                move(normalManager.getNormal().cpy().rotate90(-1).scl(20));
                 setFriction(0.0f);
             } else {
                 slowMovement(2f);
                 setFriction(0.6f);
             }
             if (pressedKeys.contains(Input.Keys.W) && jumpTime > 0) {
-                move(normalManager.getNormal().cpy().scl(200));
+                move(normalManager.getNormal().cpy().scl(150));
                 jumpTime--;
             }
         }
@@ -227,12 +227,17 @@ public class Player extends Actor {
 
         @Override
         public void beginContact(Contact contact, Fixture you, Fixture other) {
-            contactNormals.put(new ContactKey(you, other), contact.getWorldManifold().getNormal().cpy().nor());
-            Vector2 accumulator = new Vector2(0, 0);
-            for (Vector2 normal : contactNormals.values()) {
-                accumulator.add(normal);
+            System.out.println("Contact");
+            if (other.getUserData() instanceof SurfaceData) {
+                System.out.println("Surface contact");
+                System.out.println("Surface Normal: " + ((SurfaceData) other.getUserData()).getNormal());
+                contactNormals.put(new ContactKey(you, other), ((SurfaceData) other.getUserData()).getNormal());
+                Vector2 accumulator = new Vector2(0, 0);
+                for (Vector2 normal : contactNormals.values()) {
+                    accumulator.add(normal);
+                }
+                normal = accumulator.scl(1f / contactNormals.size());
             }
-            normal = accumulator.scl(1f / contactNormals.size());
         }
 
         @Override
