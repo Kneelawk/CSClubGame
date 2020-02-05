@@ -23,7 +23,9 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import edu.shoreline.csclubgame.CSClubGameMain;
 import edu.shoreline.csclubgame.platformergame.world.Platform;
 import edu.shoreline.csclubgame.platformergame.world.Player;
-import edu.shoreline.csclubgame.platformergame.world.WorldContactManager;
+import edu.shoreline.csclubgame.platformergame.physics.WorldContactManager;
+import edu.shoreline.csclubgame.platformergame.world.action.EntityPhysicsAction;
+import edu.shoreline.csclubgame.platformergame.world.action.InputEntityController;
 import edu.shoreline.csclubgame.util.ScreenGame;
 
 public class PlatformerGame extends ScreenGame {
@@ -45,7 +47,8 @@ public class PlatformerGame extends ScreenGame {
     private Stage gameStage;
     private World gameWorld;
     private float physicsAccumulator;
-    private edu.shoreline.csclubgame.platformergame.world.Player player;
+    private Player player;
+    private InputEntityController playerController;
     private Box2DDebugRenderer debugRenderer;
     private Group gameGroup;
 
@@ -61,11 +64,11 @@ public class PlatformerGame extends ScreenGame {
 
     @Override
     public void init() {
+        setupInput();
         setupGame();
         setupUI();
-        setupInput();
 
-        input = new InputMultiplexer(gameStage, uiStage, auxInput, player.getController());
+        input = new InputMultiplexer(gameStage, uiStage, auxInput, playerController);
 
         changeState(PlatformerGameState.PLAYING);
     }
@@ -81,8 +84,11 @@ public class PlatformerGame extends ScreenGame {
         WorldContactManager contactManager = new WorldContactManager();
         gameWorld.setContactListener(contactManager);
 
-        player = new Player(gameWorld, contactManager, new Vector2(0, 5));
+        player = new Player();
         gameGroup.addActor(player);
+        EntityPhysicsAction playerPhysics = new EntityPhysicsAction(gameWorld, contactManager, new Vector2(0, 5));
+        player.addAction(playerPhysics);
+        playerPhysics.addController(playerController);
 
         new Platform(gameWorld, new Vector2(0, 0), new Vector2(20, 2), 0, true);
         new Platform(gameWorld, new Vector2(24, 6), new Vector2(4, 1), 0, true);
@@ -114,6 +120,8 @@ public class PlatformerGame extends ScreenGame {
                 return false;
             }
         };
+
+        playerController = new InputEntityController(Input.Keys.W, Input.Keys.D, Input.Keys.A);
     }
 
     private void setupUI() {
@@ -201,18 +209,13 @@ public class PlatformerGame extends ScreenGame {
         physicsAccumulator += maxDelta;
 
         while (physicsAccumulator >= PHYSICS_SIMULATION_STEP) {
-            updatePlayer();
             gameWorld.step(PHYSICS_SIMULATION_STEP, 6, 2);
             physicsAccumulator -= PHYSICS_SIMULATION_STEP;
         }
     }
 
-    private void updatePlayer() {
-        player.update();
-    }
-
     private void moveCamera(float delta) {
-        camera.position.add(new Vector3(player.getBody().getPosition(), 0f).sub(camera.position).scl(delta * 10));
+        camera.position.add(new Vector3(player.getX(), player.getY(), 0f).sub(camera.position).scl(delta * 10));
     }
 
     @Override

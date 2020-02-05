@@ -1,4 +1,4 @@
-package edu.shoreline.csclubgame.platformergame.world;
+package edu.shoreline.csclubgame.platformergame.physics;
 
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
