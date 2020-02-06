@@ -53,7 +53,6 @@ public class InputEntityController extends InputAdapter implements PhysicsAction
             action.slowMovement(2f);
             action.setFriction(0.6f);
         } else if (pressedKeys.contains(leftKey)) {
-            System.out.println("Moving left");
             action.move(action.getNormal().cpy().rotate90(1).scl(20));
             action.setFriction(0.0f);
         } else if (pressedKeys.contains(rightKey)) {

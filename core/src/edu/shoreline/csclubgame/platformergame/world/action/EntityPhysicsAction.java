@@ -206,10 +206,7 @@ public class EntityPhysicsAction extends Action implements ControllablePhysicsAc
 
         @Override
         public void beginContact(Contact contact, Fixture you, Fixture other) {
-            System.out.println("Contact");
             if (other.getUserData() instanceof SurfaceData) {
-                System.out.println("Surface contact");
-                System.out.println("Surface Normal: " + ((SurfaceData) other.getUserData()).getNormal());
                 contactNormals.put(new ContactKey(you, other), ((SurfaceData) other.getUserData()).getNormal());
                 Vector2 accumulator = new Vector2(0, 0);
                 for (Vector2 normal : contactNormals.values()) {
